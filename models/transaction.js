@@ -7,6 +7,7 @@ const transactionSchema = mongoose.Schema({
         categoryDetail: { type: String, required: true },
         amount: { type: Number, required: true },
         analysis: { type: String, required: true },
+        date: { type: Date, required: true }
     }]
 }, {
     timestamps: true

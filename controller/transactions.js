@@ -1,7 +1,6 @@
 import Transaction from '../models/transaction.js'
 import Category from '../models/category.js'
 import User from '../models/user.js'
-import TransactionHistory from '../models/transactionHistory.js'
 import moment from 'moment'
 
 export const getTransactionsDashboard = async (req, res) => {
@@ -9,14 +8,7 @@ export const getTransactionsDashboard = async (req, res) => {
         const userData = await User.findOne({ user: req.userId });
         const userTransaction = await Transaction.findOne({ user: req.userId })
         const userCategory = await Category.findOne({ user: req.userId })
-        const transactionHistory = await TransactionHistory.findOne({ user: req.userId })
         let response=[], newTransactions=[], expenditure=[], catTotal=[], label=[]
-        if(!transactionHistory){
-            TransactionHistory.create({
-                user: req.userId,
-                transactionHistory:[]
-            })
-        }
         if(!userTransaction){
             Transaction.create({
                 user: req.userId,
@@ -85,9 +77,8 @@ export const getTransactionsDashboard = async (req, res) => {
                     total: total
                 })
             })
-            let length=userTransaction?.transactionList?.length-1
-            for(let i=length;i>=length-10;i--){
-                if(i>=0) {newTransactions.push(userTransaction?.transactionList[i])}
+            for(let i=0;i<10;i++){
+                if(userTransaction?.transactionList[i]) {newTransactions.push(userTransaction?.transactionList[i])}
             }
         }
         res.status(200).json({
@@ -123,15 +114,40 @@ export const getCategoryTransaction = async (req, res) => {
         })
         res.status(200).json({specificCategory: specificCategory, specificTransaction: categorySpecificTransaction, expenditure})
     }
-    catch (error) {
+    catch (error) {a
         console.log(error)
         res.status(500).json({ message: 'Something Went Wrong' })
     }
 }
 
 export const getTransactionHistory = async (req, res) => {
+    let transactionHistory=[]
     try {
-        const transactionHistory = await TransactionHistory.findOne({ user: req.userId })
+        const userTransaction = await Transaction.findOne({ user: req.userId })
+        if(userTransaction.transactionList.length>0){
+            userTransaction.transactionList.map(trans=>{
+                if(transactionHistory.length===0){
+                    transactionHistory.unshift({
+                        date: moment(trans.date).format('DD/MM/YYYY'),
+                        transactions: [trans]
+                    })
+                }
+                else{
+                    transactionHistory.map(history=>{
+                        if(history.date===moment(trans.date).format('DD/MM/YYYY')){
+                            history.transactions.push(trans)
+                        }
+                        else{
+                            transactionHistory.unshift({
+                                date: moment(trans.date).format('DD/MM/YYYY'),
+                                transactions: [trans]
+                            })
+                        }
+                    })
+                }
+            })
+        }
+
         res.status(200).json(transactionHistory)
     }
     catch (error) {
@@ -142,40 +158,15 @@ export const getTransactionHistory = async (req, res) => {
 
 export const addNewTransaction = async (req, res) => {
     const body = req.body
-    let pos=-1
     try {
         const userTransaction = await Transaction.findOne({ user: req.userId })
-        const transactionHistoryDoc = await TransactionHistory.findOne({ user: req.userId })
-        userTransaction.transactionList.push({
+        userTransaction.transactionList.unshift({
             categoryName: body.categoryName,
             categoryDetail: body.categoryDetail,
             amount: body.amount,
-            analysis: body.analysis
+            analysis: body.analysis,
+            date: new Date().getTime()
         })
-        transactionHistoryDoc.transactionHistory.map((trans,i)=>{
-            if(trans.date===moment().format('DD/MM/YYYY')){
-                pos=i
-            }
-        })
-        if(pos===-1){
-            transactionHistoryDoc.transactionHistory.push({
-                date: moment().format('DD/MM/YYYY'),
-                trasactions: [{
-                    categoryName: body.categoryName,
-                    categoryDetail: body.categoryDetail,
-                    amount: body.amount,
-                    analysis: body.analysis
-                }]
-            })
-        }else{
-            transactionHistoryDoc.transactionHistory[pos].trasactions.push({
-                categoryName: body.categoryName,
-                categoryDetail: body.categoryDetail,
-                amount: body.amount,
-                analysis: body.analysis
-            })
-        }
-        transactionHistoryDoc.save()
         userTransaction.save()
         res.status(200).json({message: 'Transaction Added'})
     }
@@ -188,18 +179,21 @@ export const addNewTransaction = async (req, res) => {
 export const editTransaction = async (req, res) => {
     const body = req.body
     let pos=-1
+    let transaction
     try {
         const userTransaction = await Transaction.findOne({ user: req.userId })
-        userTransaction.transactionList.map((cat,i)=>{
-            if(cat._id.toString()===body.id){   
+        userTransaction.transactionList.map((trans,i)=>{
+            if(trans._id.toString()===body.id){   
                 pos=i
+                transaction=trans
             }
         })
         userTransaction.transactionList.splice(pos, 1, {
             categoryName: body.categoryName,
             categoryDetail: body.categoryDetail,
             amount: body.amount,
-            analysis: body.analysis
+            analysis: body.analysis,
+            date: transaction.date
         })
         userTransaction.save()
         res.status(200).json({message: 'Transaction Edited'})
@@ -215,11 +209,12 @@ export const deleteTransaction = async (req, res) => {
     let pos=-1
     try {
         const userTransaction = await Transaction.findOne({ user: req.userId })
-        userTransaction.transactionList.map((cat,i)=>{
-            if(cat._id.toString()===id.toString()){   
+        userTransaction.transactionList.map((trans,i)=>{
+            if(trans._id.toString()===id.toString()){   
                 pos=i
             }
         })
+        if(pos===-1) return res.status(400).json({ message: 'Transaction Failed to Delete' })
         userTransaction.transactionList.splice(pos, 1)
         userTransaction.save()
         res.status(200).json({message: 'Transaction Deleted'})
