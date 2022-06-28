@@ -199,7 +199,7 @@ export const addNewTransaction = async (req, res) => {
 export const editTransaction = async (req, res) => {
     const body = req.body
     let pos=-1
-    let transaction, analysis
+    let transaction, analysis, total=0, expenditure=0
     try {
         const userTransaction = await Transaction.findOne({ user: req.userId })
         const userCategory = await Category.findOne({ user: req.userId })

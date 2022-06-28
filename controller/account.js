@@ -104,6 +104,24 @@ export const signup = async (req, res) => {
             password: hashedPassword, 
             monthlyIncome
         })
+        await Lender.create({
+            user: result._id,
+            lenderList: [],
+            loans: []
+        })
+        await Stock.create({
+            user: result._id,
+            investment: []
+        })
+        await Borrower.create({
+            user: result._id,
+            borrowerList: [],
+            loans: []
+        })
+        await Crypto.create({
+            user: result._id,
+            investment: []
+        })
         const token = jwt.sign({ email: result.email, id: result._id }, 'YourMoneyMatters', { expiresIn: 2189229120000 })
         res.status(200).json({ token })
     } catch (error) {
