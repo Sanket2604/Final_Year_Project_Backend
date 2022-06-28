@@ -159,7 +159,7 @@ export const deleteLenderLoan = async (req, res) => {
             if(id.toString()===loan._id.toString()){
                 pos=i
             }
-        })        
+        })
         lenderDetails.loans.splice(pos, 1)
         lenderDetails.save()
         res.status(200).json({message: 'Lender Loan Deleted!'})

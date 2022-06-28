@@ -174,11 +174,11 @@ export const addNewTransaction = async (req, res) => {
                 expenditure+=trans.amount
             }
         })
-        if(total<expenditure+body.amount){
-            analysis='Over-Budget'
+        if(parseFloat(total)>=parseFloat(expenditure+body.amount)){
+            analysis='In-Budget'
         }
         else{
-            analysis='In-Budget'
+            analysis='Over-Budget'
         }
         userTransaction.transactionList.unshift({
             categoryName: body.categoryName,
@@ -199,9 +199,26 @@ export const addNewTransaction = async (req, res) => {
 export const editTransaction = async (req, res) => {
     const body = req.body
     let pos=-1
-    let transaction
+    let transaction, analysis
     try {
         const userTransaction = await Transaction.findOne({ user: req.userId })
+        const userCategory = await Category.findOne({ user: req.userId })
+        userCategory.categoryList.map(cat=>{
+            if(cat.name===body.categoryName){
+                total=cat.total
+            }
+        })
+        userTransaction.transactionList.map(trans=>{
+            if(trans.categoryName===body.categoryName){
+                expenditure+=trans.amount
+            }
+        })
+        if(parseFloat(total)>=parseFloat(expenditure+body.amount)){
+            analysis='In-Budget'
+        }
+        else{
+            analysis='Over-Budget'
+        }
         userTransaction.transactionList.map((trans,i)=>{
             if(trans._id.toString()===body.id){   
                 pos=i
@@ -212,7 +229,7 @@ export const editTransaction = async (req, res) => {
             categoryName: body.categoryName,
             categoryDetail: body.categoryDetail,
             amount: body.amount,
-            analysis: body.analysis,
+            analysis: analysis,
             date: transaction.date
         })
         userTransaction.save()
