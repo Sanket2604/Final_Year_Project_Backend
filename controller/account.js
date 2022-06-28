@@ -111,3 +111,17 @@ export const signup = async (req, res) => {
         res.status(500).json({ message: 'Something went wrong '})
     }
 }
+
+export const editMonthlyIncome = async (req, res) => {
+
+    try{
+        const userData = await User.findOne({ user: req.userId });
+        userData.monthlyIncome=req.body.income
+        userData.save()
+        res.status(200).json({ message: 'Monthly Income Updated'})
+    }
+    catch(error){
+        console.log(error)
+        res.status(500).json({ message: 'Something went wrong'})
+    }
+}
