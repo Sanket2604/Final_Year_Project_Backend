@@ -127,27 +127,28 @@ export const getTransactionHistory = async (req, res) => {
         if(userTransaction.transactionList.length>0){
             userTransaction.transactionList.map(trans=>{
                 if(transactionHistory.length===0){
-                    transactionHistory.unshift({
+                    transactionHistory.push({
                         date: moment(trans.date).format('DD/MM/YYYY'),
                         transactions: [trans]
                     })
                 }
                 else{
+                    let flag=0
                     transactionHistory.map(history=>{
                         if(history.date===moment(trans.date).format('DD/MM/YYYY')){
                             history.transactions.push(trans)
-                        }
-                        else{
-                            transactionHistory.unshift({
-                                date: moment(trans.date).format('DD/MM/YYYY'),
-                                transactions: [trans]
-                            })
+                            flag=1
                         }
                     })
+                    if(flag===0){
+                        transactionHistory.push({
+                            date: moment(trans.date).format('DD/MM/YYYY'),
+                            transactions: [trans]
+                        })
+                    }
                 }
             })
         }
-
         res.status(200).json(transactionHistory)
     }
     catch (error) {
@@ -158,14 +159,33 @@ export const getTransactionHistory = async (req, res) => {
 
 export const addNewTransaction = async (req, res) => {
     const body = req.body
+    let expenditure=0, analysis, total
+
     try {
         const userTransaction = await Transaction.findOne({ user: req.userId })
+        const userCategory = await Category.findOne({ user: req.userId })
+        userCategory.categoryList.map(cat=>{
+            if(cat.name===body.categoryName){
+                total=cat.total
+            }
+        })
+        userTransaction.transactionList.map(trans=>{
+            if(trans.categoryName===body.categoryName){
+                expenditure+=trans.amount
+            }
+        })
+        if(total<expenditure+body.amount){
+            analysis='Over-Budget'
+        }
+        else{
+            analysis='In-Budget'
+        }
         userTransaction.transactionList.unshift({
             categoryName: body.categoryName,
             categoryDetail: body.categoryDetail,
             amount: body.amount,
-            analysis: body.analysis,
-            date: new Date().getTime()
+            analysis: analysis,
+            date: new Date()
         })
         userTransaction.save()
         res.status(200).json({message: 'Transaction Added'})
