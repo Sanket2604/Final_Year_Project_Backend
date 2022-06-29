@@ -16,7 +16,7 @@ export const getTransactionsDashboard = async (req, res) => {
             })
         }
         if(!userCategory){
-            Category.create({
+            await Category.create({
                 user: req.userId,
                 categoryList:[{
                         name: 'Electronic Gadgets',

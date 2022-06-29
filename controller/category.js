@@ -6,7 +6,7 @@ export const getCategoryList = async (req, res) => {
     try {
         const userCategory = await Category.findOne({ user: req.userId })
         let categoryList=[]
-        userCategory.categoryList.map(cat=>{
+        userCategory?.categoryList?.map(cat=>{
             categoryList.push(cat.name)
         })
         res.status(200).json(categoryList)

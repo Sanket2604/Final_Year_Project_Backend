@@ -5,18 +5,18 @@ import Borrower from '../models/borrower_loan.js'
 import Lender from '../models/lender_loan.js'
 import Crypto from '../models/crypto.js'
 import Stock from '../models/stock.js'
-
+import Category from '../models/category.js'
 
 export const getMainDashboard = async (req, res) => {
 
     try {
         let BorrowerLoanTotal=0, LenderLoanTotal=0, CryptoTotal=0, StockTotal=0
         let BorrowerLoanList=[], LenderLoanList=[], CryptoList=[], StockList=[]
-        const userData = await User.findOne({ user: req.userId });
-        const BorrowerLoan = await Borrower.findOne({ user: req.userId });
-        const LenderLoan = await Lender.findOne({ user: req.userId });
-        const CryptoInvst = await Crypto.findOne({ user: req.userId });
-        const StockInvst = await Stock.findOne({ user: req.userId });
+        const userData = await User.findById(req.userId)
+        const BorrowerLoan = await Borrower.findOne({ user: req.userId })
+        const LenderLoan = await Lender.findOne({ user: req.userId })
+        const CryptoInvst = await Crypto.findOne({ user: req.userId })
+        const StockInvst = await Stock.findOne({ user: req.userId })
 
         BorrowerLoan.loans.map(loan=>{
             if(loan.status==='active'){
@@ -122,6 +122,47 @@ export const signup = async (req, res) => {
             user: result._id,
             investment: []
         })
+        await Category.create({
+            user: result._id,
+            categoryList:[{
+                    name: 'Electronic Gadgets',
+                    total: result.monthlyIncome*12*0.1,
+                    type: 'System'
+                },{
+                    name: 'Clothing',
+                    total: result.monthlyIncome*12*0.05,
+                    type: 'System'
+                },{
+                    name: 'House Expenses',
+                    total: result.monthlyIncome*12*0.2,
+                    type: 'System'
+                },{
+                    name: 'Automobiles',
+                    total: result.monthlyIncome*12*0.08,
+                    type: 'System'
+                },{
+                    name: 'Grocery',
+                    total: result.monthlyIncome*12*0.12,
+                    type: 'System'
+                },{
+                    name: 'Memberships',
+                    total: result.monthlyIncome*12*0.05,
+                    type: 'System'
+                },{
+                    name: 'Savings',
+                    total: result.monthlyIncome*12*0.3,
+                    type: 'System'
+                },{
+                    name: 'Education',
+                    total: result.monthlyIncome*12*0.05,
+                    type: 'System'
+                },{
+                    name: 'Travel',
+                    total: result.monthlyIncome*12*0.15,
+                    type: 'System'
+                }
+            ]
+        })
         const token = jwt.sign({ email: result.email, id: result._id }, 'YourMoneyMatters', { expiresIn: 2189229120000 })
         res.status(200).json({ token })
     } catch (error) {
@@ -133,7 +174,7 @@ export const signup = async (req, res) => {
 export const editMonthlyIncome = async (req, res) => {
 
     try{
-        const userData = await User.findOne({ user: req.userId });
+        const userData = await User.findById(req.userId)
         userData.monthlyIncome=req.body.income
         userData.save()
         res.status(200).json({ message: 'Monthly Income Updated'})
