@@ -23,7 +23,7 @@ app.use(cors({
 }));
 app.options('*', cors())
 
-const CONNECTION_URL = 'mongodb+srv://Sanket:H6ki22gu0vaZu1pj@cluster0.rpnyq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+const CONNECTION_URL = 'mongodb+srv://sanket:IKwUtjXjPT8tvnzg@cdfyp.phdofek.mongodb.net/?retryWrites=true&w=majority'
 const PORT = process.env.PORT || 5000;
 
 app.use('/account', account)
