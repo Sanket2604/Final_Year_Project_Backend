@@ -17,7 +17,7 @@ app.use(bodyparser.json({ limit: "100mb", extended: true }));
 app.use(bodyparser.urlencoded({ limit: "100mb", extended: true }));
 
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://kaleidoscopic-alpaca-d73288.netlify.app'],
+    origin: ['http://localhost:3000', 'https://stunning-faun-261cdd.netlify.app'],
     method: ['GET', 'POST', 'PUT', 'DELETE'],
     optionsSuccessStatus: 200
 }));
